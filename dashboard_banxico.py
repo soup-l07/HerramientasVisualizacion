@@ -243,33 +243,49 @@ with derecha:
     st.caption("Rojo: el valor subió. Azul: bajó. Para un tipo de cambio, "
                "subir significa que el peso se debilitó.")
 
+
+# ─── Gráficas complementarias ──────────────────────────────────────────
 abajo_izq, abajo_der = st.columns(2)
+
 with abajo_izq:
-    st.subheader("Qué tan movido estuvo cada año")
+    st.subheader("Distribución de las variaciones diarias")
+
     principal["Variacion"] = principal["Valor"].pct_change() * 100
-    porAnio = principal.dropna(subset=["Variacion"])
+    variaciones = principal["Variacion"].dropna()
 
     fig, ax = plt.subplots(figsize=(6, 3.4))
-    sns.boxplot(data=porAnio, x="Anio", y="Variacion", color=GRIS, ax=ax)
-    ax.axhline(0, color=ROJO, linewidth=1, linestyle="--")
-    ax.set_xlabel("Año")
-    ax.set_ylabel("Variación diaria (%)")
+    ax.hist(variaciones, bins=30, color=AZUL,
+            edgecolor="white", alpha=0.85)
+
+    ax.axvline(0, color=ROJO, linewidth=1.5,
+               linestyle="--", label="Sin variación")
+
+    ax.set_xlabel("Variación diaria (%)")
+    ax.set_ylabel("Frecuencia")
+    ax.legend(frameon=False)
+
     st.pyplot(fig)
+    st.caption("Permite observar qué tan frecuentes son los cambios "
+               "pequeños y grandes del indicador.")
 
 with abajo_der:
     st.subheader("Promedio por mes y año")
+
     calor = principal.pivot_table(index="Anio", columns="Mes",
                                   values="Valor", aggfunc="mean")
 
     fig, ax = plt.subplots(figsize=(6, 3.4))
     imagen = ax.imshow(calor, cmap="YlGnBu", aspect="auto")
     fig.colorbar(imagen, ax=ax)
+
     ax.set_xticks(range(len(calor.columns)))
     ax.set_xticklabels(["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul",
                         "Ago", "Sep", "Oct", "Nov", "Dic"][:len(calor.columns)])
+
     ax.set_yticks(range(len(calor.index)))
     ax.set_yticklabels(calor.index)
     ax.grid(False)
+
     st.pyplot(fig)
     st.caption("Escala secuencial: el valor tiene orden pero no un cero "
                "con significado, así que no va divergente.")
